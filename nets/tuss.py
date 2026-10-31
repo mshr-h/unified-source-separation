@@ -154,7 +154,8 @@ class TussModel(nn.Module):
         """
         assert input.ndim == 3, "Currently, only support monaural input."
         batch0 = input.unsqueeze(-1)
-        batch = torch.cat((batch0.real, batch0.imag), dim=-1)  # [B, T, F, 2*M]
+        # Materialize the components without aliasing views for export.
+        batch = torch.ops.aten.view_as_real_copy.default(input)  # [B, T, F, 2*M]
         n_batch, n_frames, n_freqs = batch.shape[:3]
         n_src = len(prompts[0])
 
